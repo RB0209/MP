@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Romantic Player — For You</title>
+  <style>
+    :root{
+      --accent: #38b6ff;
+      --card-bg: rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.12);
+      --text: rgba(255,255,255,0.95);
+      --muted: rgba(255,255,255,0.7);
+      --pink: #ff83c0;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.65));
+      display:flex;align-items:center;justify-content:center;
+      padding:32px;overflow:auto;min-height:100vh;
+    }
+    .bg-photo{
+      position:fixed;inset:0;
+      background:url('Music Player.png') center/cover no-repeat;
+      filter:blur(14px) saturate(90%);transform:scale(1.02);
+      z-index:-3;
+    }
+    .bg-photo::after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg, rgba(10,10,10,0.25), rgba(8,8,20,0.5));
+    }
+    .player-wrap{z-index:2;width:100%;max-width:420px}
+    .player-card{
+      border-radius:20px;padding:18px;
+      background:var(--card-bg);
+      border:1px solid var(--glass-border);
+      box-shadow:0 6px 20px rgba(0,0,0,0.5),0 8px 40px rgba(56,182,255,0.06);
+      backdrop-filter:blur(10px) saturate(120%);
+      transition:box-shadow .35s,transform .25s;
+    }
+    .player-card:hover{box-shadow:0 20px 50px rgba(0,0,0,0.6),0 14px 60px rgba(56,182,255,0.12),0 0 60px rgba(56,182,255,0.06);transform:translateY(-6px)}
+    .art{position:relative;border-radius:14px;overflow:hidden;height:300px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.02)}
+    .art img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.9,.2,1)}
+    .player-card:hover .art img{transform:scale(1.06) rotate(-0.2deg)}
+    .art-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.35));mix-blend-mode:multiply}
+    .meta{text-align:center;margin-bottom:8px}
+    .meta h2{margin:4px 0 0;font-size:20px}
+    .meta p{margin:0;color:var(--muted);font-size:14px}
+    .progress-row{display:flex;align-items:center;gap:12px;margin:8px 0 12px}
+    .time{font-size:12px;color:var(--muted);width:40px;text-align:center}
+    .progress-container{flex:1;height:10px;background:linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border-radius:999px;position:relative;cursor:pointer;overflow:hidden}
+    .progress-filled{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,var(--pink),var(--accent));box-shadow:0 6px 18px rgba(56,182,255,0.12)}
+    .controls{display:flex;gap:20px;justify-content:center;align-items:center;margin-bottom:14px}
+    .btn{border:0;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));color:var(--text);padding:10px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:transform .16s,box-shadow .16s;box-shadow:0 8px 18px rgba(0,0,0,0.45),0 4px 18px rgba(56,182,255,0.03)}
+    .btn svg{width:22px;height:22px;fill:currentColor}
+    .btn:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,0,0,0.55),0 10px 40px rgba(56,182,255,0.14)}
+    .circle{border-radius:50%}
+    .big{width:84px;height:84px;padding:0;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.08));position:relative}
+    .big svg{width:34px;height:34px}
+    .big:hover::after{box-shadow:0 0 40px rgba(56,182,255,0.18)}
+    .extras{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+    .btn.small{width:44px;height:44px;padding:8px;border-radius:10px}
+    .volume input[type=range]{width:120px;accent-color:var(--accent)}
+    .playlist{margin-top:6px;display:flex;flex-direction:column;gap:8px;max-height:160px;overflow:auto;padding-right:6px}
+    .playlist .item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02);cursor:pointer;transition:transform .12s,box-shadow .12s}
+    .playlist .item:hover{transform:translateX(6px);box-shadow:0 10px 30px rgba(0,0,0,0.5),0 8px 40px rgba(56,182,255,0.06)}
+    .playlist .thumb{width:56px;height:56px;border-radius:10px;overflow:hidden;flex-shrink:0;background:url('Music Player.png') center/cover no-repeat}
+    .playlist .text{flex:1;min-width:0}
+    .playlist .text h4{margin:0;font-size:14px}
+    .playlist .text p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+    .playlist .playing{outline:2px solid rgba(56,182,255,0.12);box-shadow:0 10px 30px rgba(56,182,255,0.08)}
+    @media(max-width:420px){.art{height:260px}.big{width:72px;height:72px}}
+  </style>
+</head>
+<body>
+  <div class="bg-photo" aria-hidden="true"></div>
+  <main class="player-wrap">
+    <div class="player-card">
+      <div class="art"><img src="Music Player.png" alt="Cover"/><div class="art-overlay"></div></div>
+      <div class="meta"><h2 id="title">—</h2><p id="artist">—</p></div>
+      <div class="progress-row">
+        <div id="currentTime" class="time">0:00</div>
+        <div id="progressContainer" class="progress-container"><div id="progress" class="progress-filled"></div></div>
+        <div id="duration" class="time">0:00</div>
+      </div>
+      <div class="controls">
+        <button id="prev" class="btn circle" title="Prev"><svg viewBox="0 0 24 24"><path d="M6 6v12l8.5-6L6 6zM18 6v12h-2V6h2z"/></svg></button>
+        <button id="play" class="btn big circle" aria-label="Play">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button id="next" class="btn circle" title="Next"><svg viewBox="0 0 24 24"><path d="M16 6v12l-8.5-6L16 6zM20 6v12h-2V6h2z"/></svg></button>
+      </div>
+      <div class="extras">
+        <button id="shuffle" class="btn small" title="Shuffle"><svg viewBox="0 0 24 24"><path d="M16 3h5v5h-2V6.41l-7.59 7.59-1.41-1.41L17.59 5H16V3zM3 6h2.17l5.83 5.83-1.41 1.41L3 7.41V9H1V4h5v2zM13 13l2 2 4-4v3h2V9h-6v2z"/></svg></button>
+        <label class="volume"><input id="volume" type="range" min="0" max="1" step="0.01" value="0.9"/></label>
+        <button id="repeat" class="btn small" title="Repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H6a2 2 0 0 0-2 2v4h2V7zM17 17H7v-3l-4 4 4 4v-3h11a2 2 0 0 0 2-2v-4h-2v4z"/></svg></button>
+      </div>
+      <div id="playlist" class="playlist"></div>
+    </div>
+  </main>
+  <audio id="audio" preload="metadata"></audio>
+  <script>
+    const songs = [
+      { file: 'songs/01_Love_of_My_Life.mp3', title: 'Love of My Life', artist: 'For You' },
+      { file: 'songs/02_Evergreen.mp3', title: 'Evergreen', artist: 'For You' },
+      { file: 'songs/03_Moonlight_Serenade.mp3', title: 'Moonlight Serenade', artist: 'For You' },
+      { file: 'songs/04_You_and_I.mp3', title: 'You & I', artist: 'For You' },
+      { file: 'songs/05_Forever_With_You.mp3', title: 'Forever With You', artist: 'For You' }
+    ];
+    const audio=document.getElementById('audio'),playBtn=document.getElementById('play'),playIcon=document.getElementById('playIcon'),pauseIcon=document.getElementById('pauseIcon'),prevBtn=document.getElementById('prev'),nextBtn=document.getElementById('next'),shuffleBtn=document.getElementById('shuffle'),repeatBtn=document.getElementById('repeat'),progressContainer=document.getElementById('progressContainer'),progress=document.getElementById('progress'),currentTimeEl=document.getElementById('currentTime'),durationEl=document.getElementById('duration'),titleEl=document.getElementById('title'),artistEl=document.getElementById('artist'),playlistEl=document.getElementById('playlist'),volumeEl=document.getElementById('volume');
+    let currentIndex=0,isPlaying=false,isShuffle=false,isRepeat=false,progressUpdateRaf=null;
+    function buildPlaylist(){playlistEl.innerHTML='';songs.forEach((s,i)=>{const item=document.createElement('div');item.className='item';item.dataset.index=i;item.innerHTML=`<div class="thumb"></div><div class="text"><h4>${s.title}</h4><p>${s.artist}</p></div>`;item.addEventListener('click',()=>{loadSong(i);playSong()});playlistEl.appendChild(item)})}
+    function loadSong(index){currentIndex=index;songs[currentIndex];audio.src=songs[currentIndex].file;audio.load();titleEl.textContent=songs[currentIndex].title;artistEl.textContent=songs[currentIndex].artist;Array.from(playlistEl.children).forEach(el=>el.classList.toggle('playing',+el.dataset.index===currentIndex))}
+    function playSong(){audio.play().then(()=>{isPlaying=true;playIcon.style.display='none';pauseIcon.style.display='block';animateProgress()})}
+    function pauseSong(){audio.pause();isPlaying=false;playIcon.style.display='block';pauseIcon.style.display='none';cancelAnimationFrame(progressUpdateRaf)}
+    function prevSong(){if(audio.currentTime>3){audio.currentTime=0;return}currentIndex=(currentIndex-1+songs.length)%songs.length;loadSong(currentIndex);playSong()}
+    function nextSong(){if(isShuffle){let n=currentIndex;if(songs.length>1){while(n===currentIndex){n=Math.floor(Math.random()*songs.length)}}currentIndex=n}else{currentIndex=(currentIndex+1)%songs.length}loadSong(currentIndex);playSong()}
+    shuffleBtn.addEventListener('click',()=>{isShuffle=!isShuffle;shuffleBtn.style.boxShadow=isShuffle?'0 14px 40px rgba(56,182,255,0.18)':''})
+    repeatBtn.addEventListener('click',()=>{isRepeat=!isRepeat;repeatBtn.style.boxShadow=isRepeat?'0 14px 40px rgba(56,182,255,0.12)':''})
+    function formatTime(sec){if(!sec||isNaN(sec))return'0:00';const m=Math.floor(sec/60),s=Math.floor(sec%60).toString().padStart(2,'0');return m+":"+s}
+    function animateProgress(){const update=()=>{if(audio.duration){progress.style.width=(audio.currentTime/audio.duration*100)+'%';currentTimeEl.textContent=formatTime(audio.currentTime)}progressUpdateRaf=requestAnimationFrame(update)};cancelAnimationFrame(progressUpdateRaf);progressUpdateRaf=requestAnimationFrame(update)}
+    progressContainer.addEventListener('click',e=>{const rect=progressContainer.getBoundingClientRect();const pct=(e.clientX-rect.left)/rect.width;if(audio.duration)audio.currentTime=pct*audio.duration})
+    volumeEl.addEventListener('input',e=>{audio.volume=parseFloat(e.target.value)})
+    playBtn.addEventListener('click',()=>{isPlaying?pauseSong():playSong()});prevBtn.addEventListener('click',prevSong);nextBtn.addEventListener('click',nextSong)
+    audio.addEventListener('loadedmetadata',()=>{durationEl.textContent=formatTime(audio.duration)})
+    audio.addEventListener('ended',()=>{isRepeat?(audio.currentTime=0,playSong()):nextSong()})
+    buildPlaylist();loadSong(0);audio.volume=parseFloat(volumeEl.value)
+  </script>
+</body>
+</html>
